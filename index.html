@@ -1,459 +1,413 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>iTabs | Quote Widget</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>iTabs | Build Your Quote Widget</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-secondary: #12121a;
+  --bg-tertiary: #1e1e2e;
+  --text-primary: #ffffff;
+  --text-secondary: #9090b0;
+  --accent: #7c3aed;
+  --accent2: #06b6d4;
+  --i-button: #f59e0b;
+  --green: #10b981;
+  --card-radius: 16px;
+}
+html, body { height: 100%; overflow: hidden; background: var(--bg-primary); font-family: 'Inter', -apple-system, sans-serif; color: var(--text-primary); }
 
-    :root {
-      --bg: #09090f;
-      --card: #111118;
-      --border: rgba(255,255,255,0.08);
-      --text: #efefff;
-      --muted: #606080;
-      --accent: #7c3aed;
-      --amber: #f59e0b;
-      --green: #10b981;
-      --cyan: #06b6d4;
-    }
+/* ── Layout ── */
+.app { max-width: 430px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
 
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+/* ── Progress bar ── */
+.progress-bar-wrap { padding: 14px 16px 6px; display: flex; gap: 4px; }
+.prog-seg { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.15); transition: background 0.3s; }
+.prog-seg.done { background: rgba(255,255,255,0.5); }
+.prog-seg.active { background: var(--accent); }
 
-    a { color: inherit; text-decoration: none; }
+/* ── Screens ── */
+.screens { flex: 1; position: relative; overflow: hidden; }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 20px 20px 0; opacity: 0; transform: translateX(60px); transition: all 0.3s ease; pointer-events: none; overflow-y: auto; }
+.screen.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+.screen.prev { opacity: 0; transform: translateX(-60px); }
 
-    /* NAV */
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 20px 40px;
-      border-bottom: 1px solid var(--border);
-    }
-    .logo {
-      font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800;
-      background: linear-gradient(135deg, #a78bfa, #06b6d4);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    }
-    .logo span { -webkit-text-fill-color: var(--amber); }
-    nav a.back { font-size: 13px; color: var(--muted); transition: color 0.2s; }
-    nav a.back:hover { color: var(--text); }
+.step-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; color: var(--accent2); text-transform: uppercase; margin-bottom: 10px; }
+.screen h2 { font-size: clamp(22px, 5.5vw, 28px); font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
+.screen h2 em { font-style: normal; color: #a78bfa; }
+.screen p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
 
-    /* MAIN */
-    main {
-      max-width: 620px; margin: 0 auto;
-      padding: 64px 24px 80px;
-    }
+/* Trade grid */
+.trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.trade-btn { background: var(--bg-secondary); border: 2px solid transparent; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s; color: var(--text-primary); font-family: inherit; }
+.trade-btn:active { transform: scale(0.97); }
+.trade-btn.selected { border-color: var(--accent); background: rgba(124,58,237,0.15); }
+.trade-btn .trade-icon { font-size: 26px; display: block; margin-bottom: 6px; }
+.trade-btn .trade-name { font-size: 13px; font-weight: 600; }
 
-    /* HERO */
-    .hero { margin-bottom: 52px; }
-    h1 {
-      font-family: 'Syne', sans-serif;
-      font-size: clamp(32px, 6vw, 52px);
-      font-weight: 800; line-height: 1.1;
-      margin-bottom: 16px;
-    }
-    h1 em { font-style: normal; color: var(--amber); }
-    .hero-sub {
-      font-size: 16px; color: var(--muted);
-      line-height: 1.65; max-width: 480px;
-    }
-    .hero-sub strong { color: #a0a0c0; }
+/* Text input */
+.input-field { background: var(--bg-secondary); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; font-size: 16px; color: var(--text-primary); font-family: inherit; width: 100%; outline: none; transition: border-color 0.2s; }
+.input-field:focus { border-color: var(--accent); }
+.input-field::placeholder { color: var(--text-secondary); }
 
-    .price-tag {
-      display: inline-flex; align-items: baseline; gap: 8px;
-      margin-top: 24px;
-      padding: 10px 20px;
-      border: 1px solid rgba(245,158,11,0.2);
-      border-radius: 100px;
-      background: rgba(245,158,11,0.05);
-    }
-    .price-big { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--amber); }
-    .price-note { font-size: 13px; color: var(--muted); }
+/* Services */
+.service-grid { display: flex; flex-direction: column; gap: 8px; }
+.service-btn { background: var(--bg-secondary); border: 2px solid transparent; border-radius: 12px; padding: 14px 16px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-primary); font-family: inherit; transition: all 0.2s; }
+.service-btn.selected { border-color: var(--green); background: rgba(16,185,129,0.1); }
+.service-icon { font-size: 20px; width: 28px; text-align: center; }
+.service-name { font-size: 14px; font-weight: 500; }
+.service-check { margin-left: auto; width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 11px; transition: all 0.2s; }
+.service-btn.selected .service-check { background: var(--green); border-color: var(--green); }
 
-    .demo-link {
-      display: inline-flex; align-items: center; gap: 6px;
-      margin-top: 20px; margin-left: 12px;
-      font-size: 13px; color: var(--cyan);
-      border-bottom: 1px solid rgba(6,182,212,0.3);
-      transition: border-color 0.2s;
-    }
-    .demo-link:hover { border-color: var(--cyan); }
+/* Phone screen */
+.optional-label { font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
 
-    /* STEPS */
-    .steps {
-      display: flex; margin-bottom: 40px;
-    }
-    .step {
-      flex: 1; text-align: center; padding: 0 8px;
-      position: relative;
-    }
-    .step:not(:last-child)::after {
-      content: ''; position: absolute;
-      top: 16px; left: calc(50% + 16px);
-      right: calc(-50% + 16px);
-      height: 1px; background: var(--border);
-    }
-    .step-num {
-      width: 32px; height: 32px; border-radius: 50%;
-      background: var(--card); border: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: 700; color: var(--muted);
-      margin: 0 auto 10px;
-    }
-    .step p { font-size: 12px; color: var(--muted); line-height: 1.4; }
+/* ── Preview screen ── */
+.preview-card { background: var(--bg-secondary); border-radius: 16px; overflow: hidden; margin-bottom: 14px; }
+.preview-hero { padding: 20px; background: linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%); }
+.preview-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; margin-bottom: 10px; }
+.preview-biz-name { font-size: 20px; font-weight: 700; }
+.preview-suburb { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 2px; }
+.preview-rows { padding: 4px 0; }
+.preview-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.preview-row:last-child { border-bottom: none; }
+.preview-row-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.preview-row-label { font-size: 11px; color: var(--text-secondary); }
+.preview-row-value { font-size: 14px; font-weight: 500; margin-top: 1px; }
+.preview-row-value.accent { color: var(--i-button); }
 
-    /* FORM CARD */
-    .form-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 40px;
-    }
-    @media(max-width:540px){ .form-card { padding: 28px 20px; } }
+.preview-services { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 16px; }
+.service-pill { background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.4); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500; }
 
-    .form-card h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 18px; font-weight: 700;
-      margin-bottom: 6px;
-    }
-    .form-card > p {
-      font-size: 13px; color: var(--muted);
-      margin-bottom: 28px; line-height: 1.6;
-    }
+.cta-box { background: linear-gradient(135deg, #14532d 0%, #052e16 100%); border-radius: 16px; padding: 20px; text-align: center; }
+.cta-box h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+.cta-box p { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 16px; line-height: 1.5; }
+.cta-deploy-btn { display: block; width: 100%; padding: 15px; background: var(--green); border: none; border-radius: 12px; color: #000; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.2s; letter-spacing: 0.01em; }
+.cta-deploy-btn:active { opacity: 0.85; }
+.cta-price { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 10px; }
 
-    /* URL ROW */
-    .url-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 8px; }
-    .url-row input { flex: 1; }
-    .fetch-status { font-size: 12px; color: var(--muted); min-height: 16px; margin-bottom: 24px; }
-    .fetch-status.success { color: var(--green); }
-    .fetch-status.error { color: #f87171; }
-    .fetch-status.loading { color: var(--cyan); }
+/* ── Bottom nav ── */
+.bottom-nav { padding: 14px 20px 28px; display: flex; gap: 10px; }
+.btn-back { background: rgba(255,255,255,0.08); border: none; border-radius: 12px; padding: 14px 18px; color: var(--text-primary); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+.btn-next { flex: 1; background: var(--accent); border: none; border-radius: 12px; padding: 14px; color: #fff; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
+.btn-next:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-next:not(:disabled):active { opacity: 0.85; }
+.btn-next.hidden { display: none; }
 
-    hr { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+/* Success toast */
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green); color: #000; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-    /* FIELDS */
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    @media(max-width:480px){ .grid { grid-template-columns: 1fr; } }
-    .full { grid-column: 1 / -1; }
-
-    .field { display: flex; flex-direction: column; gap: 6px; }
-    label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
-    label .req { color: var(--amber); }
-
-    input[type="text"], input[type="email"], input[type="tel"], input[type="url"], select, textarea {
-      background: #0d0d18;
-      border: 1px solid var(--border);
-      border-radius: 9px;
-      padding: 11px 14px;
-      font-size: 14px; color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      outline: none; width: 100%;
-      transition: border-color 0.2s;
-    }
-    input:focus, select:focus, textarea:focus { border-color: rgba(124,58,237,0.5); }
-    select option { background: #111118; }
-    textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
-    .prefilled { border-color: rgba(16,185,129,0.35) !important; }
-
-    .services-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    @media(max-width:480px){ .services-grid { grid-template-columns: 1fr; } }
-
-    /* BUTTONS */
-    .btn-fetch {
-      background: rgba(124,58,237,0.12);
-      border: 1px solid rgba(124,58,237,0.25);
-      color: #a78bfa;
-      padding: 11px 16px; border-radius: 9px;
-      font-size: 13px; font-weight: 600;
-      cursor: pointer; white-space: nowrap;
-      font-family: 'DM Sans', sans-serif;
-      transition: background 0.2s;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .btn-fetch:hover:not(:disabled) { background: rgba(124,58,237,0.22); }
-    .btn-fetch:disabled { opacity: 0.45; cursor: not-allowed; }
-
-    .btn-submit {
-      width: 100%;
-      background: var(--amber);
-      color: #000; border: none;
-      padding: 16px; border-radius: 11px;
-      font-family: 'Syne', sans-serif;
-      font-size: 16px; font-weight: 800;
-      cursor: pointer; margin-top: 28px;
-      transition: opacity 0.2s, transform 0.15s;
-    }
-    .btn-submit:hover { opacity: 0.88; transform: translateY(-1px); }
-
-    .submit-note {
-      font-size: 12px; color: var(--muted);
-      text-align: center; margin-top: 10px; line-height: 1.5;
-    }
-
-    /* SPINNER */
-    .spinner {
-      width: 12px; height: 12px; border-radius: 50%;
-      border: 2px solid rgba(167,139,250,0.3);
-      border-top-color: #a78bfa;
-      animation: spin 0.6s linear infinite;
-      display: none;
-    }
-    .spinner.on { display: block; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* FOOTER */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 24px 40px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    footer p { font-size: 12px; color: #404060; }
-    footer a { color: #404060; }
-    footer a:hover { color: var(--muted); }
-    @media(max-width:500px){ footer { flex-direction: column; gap: 8px; text-align: center; } }
-  </style>
+/* Powered by */
+.powered-by { text-align: center; font-size: 10px; color: rgba(255,255,255,0.2); padding: 0 0 6px; }
+</style>
 </head>
 <body>
+<div class="app">
 
-<nav>
-  <div class="logo">i<span>Tabs</span></div>
-  <a href="https://itabs.ai" class="back">← itabs.ai</a>
-</nav>
+  <!-- Progress -->
+  <div class="progress-bar-wrap" id="progressBar"></div>
 
-<main>
+  <!-- Screens -->
+  <div class="screens" id="screens">
 
-  <div class="hero">
-    <h1>Your <em>Quote Widget</em><br>in minutes.</h1>
-    <p class="hero-sub">
-      Paste your website URL — we'll pull your details, build your widget,
-      and send you a <strong>live link straight to your inbox.</strong>
-    </p>
-    <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin-top:24px;">
-      <div class="price-tag">
-        <span class="price-big">$290</span>
-        <span class="price-note">one-off · no ongoing fees</span>
+    <!-- Step 0: Welcome -->
+    <div class="screen active" id="screen-0">
+      <div class="step-label">✨ Free Preview</div>
+      <h2>See your <em>quote widget</em> before you buy</h2>
+      <p>Answer 4 quick questions. We'll build a live preview with your business name on it — takes 60 seconds.</p>
+      <div style="margin-top: 8px; background: var(--bg-secondary); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">📱</span><span style="font-size:13px; color:var(--text-secondary);">Mobile-first — works on any device</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">⚡</span><span style="font-size:13px; color:var(--text-secondary);">Deployed to your own link, same day</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">💰</span><span style="font-size:13px; color:var(--text-secondary);">$290 one-off — no ongoing fees, ever</span></div>
+        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🔒</span><span style="font-size:13px; color:var(--text-secondary);">Yours to keep — we never hold it hostage</span></div>
       </div>
-      <a href="https://boilermaker-innovator.github.io/itabs-quotes/widget-20260318-100612.html" target="_blank" class="demo-link">
-        See an example ↗
-      </a>
     </div>
-  </div>
 
-  <div class="steps">
-    <div class="step">
-      <div class="step-num">1</div>
-      <p>Paste your URL &amp; auto-fill</p>
+    <!-- Step 1: Trade -->
+    <div class="screen" id="screen-1">
+      <div class="step-label">Step 1 of 4 — Your Trade</div>
+      <h2>What's your <em>trade?</em></h2>
+      <p>We'll load the right services for you.</p>
+      <div class="trade-grid" id="tradeGrid">
+        <button class="trade-btn" data-trade="Fencing" data-color="#059669" onclick="selectTrade(this)"><span class="trade-icon">🪵</span><span class="trade-name">Fencing</span></button>
+        <button class="trade-btn" data-trade="Plumbing" data-color="#0891b2" onclick="selectTrade(this)"><span class="trade-icon">🔧</span><span class="trade-name">Plumbing</span></button>
+        <button class="trade-btn" data-trade="Electrical" data-color="#d97706" onclick="selectTrade(this)"><span class="trade-icon">⚡</span><span class="trade-name">Electrical</span></button>
+        <button class="trade-btn" data-trade="Landscaping" data-color="#16a34a" onclick="selectTrade(this)"><span class="trade-icon">🌿</span><span class="trade-name">Landscaping</span></button>
+        <button class="trade-btn" data-trade="Painting" data-color="#7c3aed" onclick="selectTrade(this)"><span class="trade-icon">🎨</span><span class="trade-name">Painting</span></button>
+        <button class="trade-btn" data-trade="Concreting" data-color="#78716c" onclick="selectTrade(this)"><span class="trade-icon">🏗️</span><span class="trade-name">Concreting</span></button>
+        <button class="trade-btn" data-trade="Roofing" data-color="#dc2626" onclick="selectTrade(this)"><span class="trade-icon">🏠</span><span class="trade-name">Roofing</span></button>
+        <button class="trade-btn" data-trade="Tiling" data-color="#0e7490" onclick="selectTrade(this)"><span class="trade-icon">🔲</span><span class="trade-name">Tiling</span></button>
+      </div>
     </div>
-    <div class="step">
-      <div class="step-num">2</div>
-      <p>Check &amp; submit</p>
+
+    <!-- Step 2: Business Name -->
+    <div class="screen" id="screen-2">
+      <div class="step-label">Step 2 of 4 — Your Business</div>
+      <h2>What's your <em>business name?</em></h2>
+      <p>This appears on your widget — exactly as you type it.</p>
+      <input class="input-field" id="bizNameInput" type="text" placeholder="e.g. Pete's Fencing Co" maxlength="40" oninput="onBizName(this.value)">
     </div>
-    <div class="step">
-      <div class="step-num">3</div>
-      <p>Get your live widget link</p>
+
+    <!-- Step 3: Services -->
+    <div class="screen" id="screen-3">
+      <div class="step-label">Step 3 of 4 — Your Services</div>
+      <h2>Pick your <em>main services</em></h2>
+      <p>Choose up to 4. These become your widget cards.</p>
+      <div class="service-grid" id="serviceGrid"></div>
     </div>
-  </div>
 
-  <div class="form-card">
-    <h2>Get your widget</h2>
-    <p>Got a website? Paste it below and we'll fill the form in for you.</p>
-
-    <div class="url-row">
-      <input type="url" id="siteUrl" placeholder="yourwebsite.com.au">
-      <button class="btn-fetch" id="fetchBtn" onclick="fetchDetails()">
-        <div class="spinner" id="spinner"></div>
-        <span id="fetchLabel">✨ Auto-fill</span>
-      </button>
+    <!-- Step 4: Phone -->
+    <div class="screen" id="screen-4">
+      <div class="step-label">Step 4 of 4 — Contact</div>
+      <h2>Your <em>phone number?</em></h2>
+      <p>Shows on your widget so customers can call or text directly.</p>
+      <input class="input-field" id="phoneInput" type="tel" placeholder="e.g. 0412 345 678" maxlength="20" oninput="onPhone(this.value)">
+      <p class="optional-label">Optional — you can add it later</p>
     </div>
-    <div class="fetch-status" id="fetchStatus"></div>
 
-    <hr>
+    <!-- Step 5: Preview -->
+    <div class="screen" id="screen-5">
+      <div class="step-label">🎉 Here's your widget</div>
+      <h2>This is <em>yours</em></h2>
 
-    <div class="grid">
-
-      <div class="field">
-        <label>Business Name <span class="req">*</span></label>
-        <input type="text" id="bizName" placeholder="e.g. Rick's Lawn Care" required>
-      </div>
-
-      <div class="field">
-        <label>Trade <span class="req">*</span></label>
-        <select id="trade" required>
-          <option value="">Select…</option>
-          <option>Plumber</option>
-          <option>Electrician</option>
-          <option>Landscaper</option>
-          <option>Fencer</option>
-          <option>Painter</option>
-          <option>Roofer</option>
-          <option>Tiler</option>
-          <option>Concreter</option>
-          <option>Builder / Renovator</option>
-          <option>Cleaner</option>
-          <option>Air Con / HVAC</option>
-          <option>Other</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Suburb / Area <span class="req">*</span></label>
-        <input type="text" id="suburb" placeholder="e.g. Baldivis, Perth WA" required>
-      </div>
-
-      <div class="field">
-        <label>Phone <span class="req">*</span></label>
-        <input type="tel" id="phone" placeholder="e.g. 0412 999 888" required>
-      </div>
-
-      <div class="field full">
-        <label>Your Email — we'll send the live link here <span class="req">*</span></label>
-        <input type="email" id="email" placeholder="you@yourbusiness.com.au" required>
-      </div>
-
-      <div class="field full">
-        <label>Services (up to 4) <span class="req">*</span></label>
-        <div class="services-grid">
-          <input type="text" id="s1" placeholder="e.g. Lawn Mowing">
-          <input type="text" id="s2" placeholder="e.g. Reticulation">
-          <input type="text" id="s3" placeholder="e.g. Garden Cleanup">
-          <input type="text" id="s4" placeholder="e.g. Turf Laying (optional)">
+      <div class="preview-card">
+        <div class="preview-hero" id="previewHero">
+          <div class="preview-avatar" id="previewAvatar">?</div>
+          <div class="preview-biz-name" id="previewBizName">Your Business</div>
+          <div class="preview-suburb" id="previewSuburb">Perth, WA</div>
         </div>
+        <div class="preview-rows">
+          <div class="preview-row">
+            <div class="preview-row-icon">🏗️</div>
+            <div>
+              <div class="preview-row-label">Trade</div>
+              <div class="preview-row-value" id="previewTrade">—</div>
+            </div>
+          </div>
+          <div class="preview-row">
+            <div class="preview-row-icon">📍</div>
+            <div>
+              <div class="preview-row-label">Service Area</div>
+              <div class="preview-row-value">Perth, Western Australia</div>
+            </div>
+          </div>
+          <div class="preview-row">
+            <div class="preview-row-icon">📞</div>
+            <div>
+              <div class="preview-row-label">Phone</div>
+              <div class="preview-row-value accent" id="previewPhone">Add in Step 4</div>
+            </div>
+          </div>
+        </div>
+        <div class="preview-services" id="previewServices"></div>
       </div>
 
-      <div class="field full">
-        <label>Anything else? (optional)</label>
-        <textarea id="extra" placeholder="e.g. Perth metro, 10 years in business, free quotes…"></textarea>
+      <div class="cta-box">
+        <h3>Ready to go live?</h3>
+        <p>We'll deploy this with your branding to a shareable link. Same day. One-off payment.</p>
+        <button class="cta-deploy-btn" onclick="onDeploy()">Get mine deployed →</button>
+        <div class="cta-price">$290 one-off · no ongoing fees · yours forever</div>
       </div>
 
+      <div style="height: 20px;"></div>
     </div>
-
-    <button class="btn-submit" onclick="submitOrder()">⚡ Build My Widget — $290</button>
-    <p class="submit-note">This opens your email app with everything pre-filled — just hit Send.</p>
 
   </div>
 
-</main>
+  <!-- Bottom nav -->
+  <div class="bottom-nav" id="bottomNav">
+    <button class="btn-back" id="btnBack" onclick="goBack()" style="display:none">←</button>
+    <button class="btn-next" id="btnNext" onclick="goNext()">Let's go →</button>
+  </div>
 
-<footer>
-  <p>⚡ Powered by <strong style="color:#606080">iTabs</strong></p>
-  <p><a href="https://itabs.ai">itabs.ai</a> · <a href="mailto:hello@itabs.ai">hello@itabs.ai</a></p>
-</footer>
+  <div class="powered-by">Powered by iTabs — itabs.ai</div>
+</div>
+
+<div class="toast" id="toast">✅ Request sent! We'll be in touch.</div>
 
 <script>
-async function fetchDetails() {
-  const url = document.getElementById('siteUrl').value.trim();
-  if (!url) { setStatus('error', 'Enter a URL first.'); return; }
-  const fullUrl = url.startsWith('http') ? url : 'https://' + url;
-  setStatus('loading', '✨ Reading your website…');
-  setFetchBusy(true);
+const TOTAL_STEPS = 5; // 0-5
+let currentStep = 0;
 
-  try {
-    const prompt = `Visit this website: ${fullUrl}
+const state = {
+  trade: '',
+  tradeColor: '#7c3aed',
+  bizName: '',
+  services: [],
+  phone: ''
+};
 
-Extract business details and return ONLY a JSON object:
-{
-  "bizName": "business name",
-  "trade": "one of: Plumber, Electrician, Landscaper, Fencer, Painter, Roofer, Tiler, Concreter, Builder / Renovator, Cleaner, Air Con / HVAC, Other",
-  "suburb": "suburb and state",
-  "phone": "phone number",
-  "services": ["service 1", "service 2", "service 3", "service 4"]
-}
-Use empty string if not found. Return ONLY the JSON.`;
+const SERVICES = {
+  Fencing:    [{icon:'🪵',name:'Colorbond Fencing'},{icon:'🌳',name:'Timber Fencing'},{icon:'🏊',name:'Pool Fencing'},{icon:'🔗',name:'Chain Wire Fencing'},{icon:'🎨',name:'Fence Painting'},{icon:'🔩',name:'Gate Installation'}],
+  Plumbing:   [{icon:'🚰',name:'Blocked Drains'},{icon:'🚿',name:'Hot Water Systems'},{icon:'🔧',name:'Leak Repairs'},{icon:'🏗️',name:'New Installations'},{icon:'🪠',name:'Toilet Repairs'},{icon:'💧',name:'Water Pressure'}],
+  Electrical: [{icon:'💡',name:'Switchboard Upgrades'},{icon:'🔌',name:'Power Points'},{icon:'💡',name:'LED Lighting'},{icon:'🔋',name:'Solar Installs'},{icon:'🚨',name:'Safety Inspections'},{icon:'🏠',name:'New Builds'}],
+  Landscaping:[{icon:'🌿',name:'Garden Design'},{icon:'🏡',name:'Lawn Mowing'},{icon:'🪨',name:'Retaining Walls'},{icon:'💦',name:'Irrigation Systems'},{icon:'🌳',name:'Tree Removal'},{icon:'🧱',name:'Paving'}],
+  Painting:   [{icon:'🎨',name:'Interior Painting'},{icon:'🏠',name:'Exterior Painting'},{icon:'🪟',name:'Roof Painting'},{icon:'🔨',name:'Prep & Repairs'},{icon:'✨',name:'Feature Walls'},{icon:'🏢',name:'Commercial'}],
+  Concreting: [{icon:'🏗️',name:'Driveways'},{icon:'🏊',name:'Pool Surrounds'},{icon:'🪜',name:'Pathways'},{icon:'🧱',name:'Slabs & Footings'},{icon:'🔨',name:'Exposed Aggregate'},{icon:'🏡',name:'Patios'}],
+  Roofing:    [{icon:'🏠',name:'Roof Restorations'},{icon:'🔧',name:'Leak Repairs'},{icon:'🪨',name:'Tile Re-bedding'},{icon:'🏗️',name:'Re-roofing'},{icon:'💧',name:'Gutters & Downpipes'},{icon:'🔍',name:'Roof Inspections'}],
+  Tiling:     [{icon:'🔲',name:'Floor Tiling'},{icon:'🚿',name:'Bathroom Tiling'},{icon:'🍳',name:'Kitchen Splashbacks'},{icon:'🏊',name:'Pool Tiling'},{icon:'🔧',name:'Grout Repairs'},{icon:'🏠',name:'Outdoor Areas'}],
+};
 
-    const res = await fetch("https://api.anthropic.com/v1/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "claude-sonnet-4-20250514",
-        max_tokens: 1000,
-        tools: [{ type: "web_search_20250305", name: "web_search" }],
-        messages: [{ role: "user", content: prompt }]
-      })
-    });
-
-    const data = await res.json();
-    const textBlock = data.content?.find(b => b.type === 'text');
-    if (!textBlock) throw new Error('No response');
-
-    const raw = textBlock.text.replace(/```json|```/g, '').trim();
-    const details = JSON.parse(raw.substring(raw.indexOf('{'), raw.lastIndexOf('}') + 1));
-
-    if (details.bizName) setField('bizName', details.bizName);
-    if (details.trade) setSelect('trade', details.trade);
-    if (details.suburb) setField('suburb', details.suburb);
-    if (details.phone) setField('phone', details.phone);
-    if (details.services?.length) {
-      ['s1','s2','s3','s4'].forEach((id, i) => { if (details.services[i]) setField(id, details.services[i]); });
-    }
-
-    const filled = [details.bizName, details.suburb, details.phone].filter(Boolean).length;
-    setStatus(filled >= 2 ? 'success' : 'error',
-      filled >= 2 ? '✅ Done — check the details and update anything that\'s off.'
-                  : 'Couldn\'t pull much from that URL — fill in the form below.');
-  } catch(e) {
-    setStatus('error', 'Couldn\'t read that URL — fill in the form below.');
-  } finally {
-    setFetchBusy(false);
+function initProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  for (let i = 1; i <= TOTAL_STEPS; i++) {
+    const seg = document.createElement('div');
+    seg.className = 'prog-seg' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
+    bar.appendChild(seg);
   }
 }
 
-function setField(id, val) {
-  const el = document.getElementById(id);
-  if (el && val) { el.value = val; el.classList.add('prefilled'); }
+function updateProgress() {
+  document.querySelectorAll('.prog-seg').forEach((s, i) => {
+    s.className = 'prog-seg' + (i+1 < currentStep ? ' done' : i+1 === currentStep ? ' active' : '');
+  });
 }
-function setSelect(id, val) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const match = Array.from(el.options).find(o =>
-    o.value.toLowerCase().includes(val.toLowerCase()) || val.toLowerCase().includes(o.value.toLowerCase())
+
+function showScreen(index) {
+  document.querySelectorAll('.screen').forEach((s, i) => {
+    s.classList.remove('active','prev');
+    if (i === index) s.classList.add('active');
+    else if (i < index) s.classList.add('prev');
+  });
+  currentStep = index;
+  updateProgress();
+  updateNav();
+}
+
+function updateNav() {
+  const back = document.getElementById('btnBack');
+  const next = document.getElementById('btnNext');
+  back.style.display = currentStep > 0 ? 'block' : 'none';
+  if (currentStep === TOTAL_STEPS) {
+    next.classList.add('hidden');
+  } else {
+    next.classList.remove('hidden');
+    next.disabled = !canProceed();
+    next.textContent = currentStep === 0 ? "Let's go →" : currentStep === TOTAL_STEPS - 1 ? 'See my widget →' : 'Next →';
+  }
+}
+
+function canProceed() {
+  if (currentStep === 0) return true;
+  if (currentStep === 1) return state.trade !== '';
+  if (currentStep === 2) return state.bizName.trim().length >= 2;
+  if (currentStep === 3) return state.services.length >= 1;
+  if (currentStep === 4) return true;
+  return false;
+}
+
+function goNext() {
+  if (!canProceed()) return;
+  if (currentStep === TOTAL_STEPS - 1) buildPreview();
+  showScreen(currentStep + 1);
+  if (currentStep === 3) buildServiceGrid();
+}
+
+function goBack() {
+  if (currentStep > 0) showScreen(currentStep - 1);
+}
+
+function selectTrade(btn) {
+  document.querySelectorAll('.trade-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  state.trade = btn.dataset.trade;
+  state.tradeColor = btn.dataset.color;
+  state.services = [];
+  updateNav();
+}
+
+function onBizName(val) {
+  state.bizName = val;
+  updateNav();
+}
+
+function onPhone(val) {
+  state.phone = val;
+  updateNav();
+}
+
+function buildServiceGrid() {
+  const grid = document.getElementById('serviceGrid');
+  const list = SERVICES[state.trade] || [];
+  grid.innerHTML = list.map(s => `
+    <button class="service-btn ${state.services.includes(s.name) ? 'selected' : ''}" onclick="toggleService(this, '${s.name}')">
+      <span class="service-icon">${s.icon}</span>
+      <span class="service-name">${s.name}</span>
+      <span class="service-check">${state.services.includes(s.name) ? '✓' : ''}</span>
+    </button>
+  `).join('');
+}
+
+function toggleService(btn, name) {
+  const idx = state.services.indexOf(name);
+  if (idx > -1) {
+    state.services.splice(idx, 1);
+    btn.classList.remove('selected');
+    btn.querySelector('.service-check').textContent = '';
+  } else {
+    if (state.services.length >= 4) return;
+    state.services.push(name);
+    btn.classList.add('selected');
+    btn.querySelector('.service-check').textContent = '✓';
+  }
+  updateNav();
+}
+
+function buildPreview() {
+  const initials = state.bizName.trim().split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() || '?';
+  const avatar = document.getElementById('previewAvatar');
+  avatar.textContent = initials;
+  avatar.style.background = state.tradeColor;
+
+  document.getElementById('previewBizName').textContent = state.bizName || 'Your Business';
+  document.getElementById('previewTrade').textContent = state.trade + ' Contractor';
+  document.getElementById('previewPhone').textContent = state.phone || '—';
+
+  const heroEl = document.getElementById('previewHero');
+  heroEl.style.background = `linear-gradient(135deg, ${state.tradeColor}99 0%, ${state.tradeColor}33 100%)`;
+
+  const pills = document.getElementById('previewServices');
+  pills.innerHTML = state.services.map(s => `<div class="service-pill">${s}</div>`).join('');
+}
+
+function onDeploy() {
+  const subject = encodeURIComponent(`Deploy my iTabs widget — ${state.bizName}`);
+  const body = encodeURIComponent(
+    `Hi iTabs,\n\nI want my quote widget deployed!\n\nBusiness: ${state.bizName}\nTrade: ${state.trade}\nServices: ${state.services.join(', ')}\nPhone: ${state.phone || 'Not provided'}\n\nPlease send me the live link.`
   );
-  if (match) { el.value = match.value; el.classList.add('prefilled'); }
-}
-function setStatus(type, msg) {
-  const el = document.getElementById('fetchStatus');
-  el.className = 'fetch-status ' + type;
-  el.textContent = msg;
-}
-function setFetchBusy(busy) {
-  document.getElementById('fetchBtn').disabled = busy;
-  document.getElementById('spinner').className = 'spinner' + (busy ? ' on' : '');
-  document.getElementById('fetchLabel').textContent = busy ? 'Fetching…' : '✨ Auto-fill';
-}
 
-function submitOrder() {
-  const biz = document.getElementById('bizName').value.trim();
-  const trade = document.getElementById('trade').value.trim();
-  const suburb = document.getElementById('suburb').value.trim();
-  const phone = document.getElementById('phone').value.trim();
-  const email = document.getElementById('email').value.trim();
-  const s1 = document.getElementById('s1').value.trim();
+  // Web3Forms silent submission
+  fetch('https://api.web3forms.com/submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      access_key: '99a11c15-5c61-4765-99c5-673adec64b16',
+      subject: `New iTabs Deploy Request — ${state.bizName}`,
+      business_name: state.bizName,
+      trade: state.trade,
+      services: state.services.join(', '),
+      phone: state.phone || 'Not provided',
+    })
+  }).catch(() => {});
 
-  if (!biz || !trade || !suburb || !phone || !email || !s1) {
-    alert('Please fill in all required fields before submitting.');
-    return;
-  }
+  // Open mailto as fallback
+  window.location.href = `mailto:build@itabs.ai?subject=${subject}&body=${body}`;
 
-  const services = ['s1','s2','s3','s4'].map(id => document.getElementById(id).value.trim()).filter(Boolean).join(', ');
-  const extra = document.getElementById('extra').value.trim();
-
-  const body = `Build an iTabs quote widget for ${biz} in ${suburb}.
-Trade: ${trade}
-Services: ${services}
-Phone: ${phone}
-Contact email: ${email}${extra ? '\nExtra: ' + extra : ''}`;
-
-  window.location.href = `mailto:build@itabs.ai?subject=${encodeURIComponent('iTabs Quote Widget — ' + biz)}&body=${encodeURIComponent(body)}`;
+  // Show toast
+  const toast = document.getElementById('toast');
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3500);
 }
 
-document.getElementById('siteUrl').addEventListener('keydown', e => { if (e.key === 'Enter') fetchDetails(); });
+// Init
+initProgress();
+showScreen(0);
 </script>
 </body>
 </html>
