@@ -6,408 +6,494 @@
 <title>iTabs | Build Your Quote Widget</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
 :root {
-  --bg-primary: #0a0a0f;
-  --bg-secondary: #12121a;
-  --bg-tertiary: #1e1e2e;
-  --text-primary: #ffffff;
-  --text-secondary: #9090b0;
-  --accent: #7c3aed;
-  --accent2: #06b6d4;
-  --i-button: #f59e0b;
-  --green: #10b981;
-  --card-radius: 16px;
+  --bg: #0a0a0f; --bg2: #12121a; --bg3: #1e1e2e;
+  --t1: #ffffff; --t2: #9090b0;
+  --accent: #7c3aed; --cyan: #06b6d4; --amber: #f59e0b; --green: #10b981;
+  --r: 16px;
 }
-html, body { height: 100%; overflow: hidden; background: var(--bg-primary); font-family: 'Inter', -apple-system, sans-serif; color: var(--text-primary); }
+html,body { height:100%; overflow:hidden; background:var(--bg); font-family:'Inter',-apple-system,sans-serif; color:var(--t1); }
+.app { max-width:430px; margin:0 auto; height:100%; display:flex; flex-direction:column; }
 
-/* ── Layout ── */
-.app { max-width: 430px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
+/* ── Progress ── */
+.prog-wrap { display:flex; gap:4px; padding:14px 16px 6px; flex-shrink:0; }
+.ps { flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,0.15); transition:background .3s; }
+.ps.done { background:rgba(255,255,255,0.5); }
+.ps.active { background:var(--accent); }
 
-/* ── Progress bar ── */
-.progress-bar-wrap { padding: 14px 16px 6px; display: flex; gap: 4px; }
-.prog-seg { flex: 1; height: 3px; border-radius: 2px; background: rgba(255,255,255,0.15); transition: background 0.3s; }
-.prog-seg.done { background: rgba(255,255,255,0.5); }
-.prog-seg.active { background: var(--accent); }
+/* ── Configurator screens ── */
+#configurator { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.screens { flex:1; position:relative; overflow:hidden; }
+.screen { position:absolute; inset:0; padding:20px 20px 0; opacity:0; transform:translateX(60px); transition:all .3s ease; pointer-events:none; overflow-y:auto; }
+.screen.active { opacity:1; transform:translateX(0); pointer-events:all; }
+.screen.prev { opacity:0; transform:translateX(-60px); }
+.step-label { font-size:10px; font-weight:700; letter-spacing:.15em; color:var(--cyan); text-transform:uppercase; margin-bottom:10px; }
+.screen h2 { font-size:24px; font-weight:700; line-height:1.25; margin-bottom:8px; }
+.screen h2 em { font-style:normal; color:#a78bfa; }
+.screen p { font-size:14px; color:var(--t2); line-height:1.6; margin-bottom:20px; }
+.trade-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.trade-btn { background:var(--bg2); border:2px solid transparent; border-radius:12px; padding:14px 10px; text-align:center; cursor:pointer; color:var(--t1); font-family:inherit; transition:all .2s; }
+.trade-btn.sel { border-color:var(--accent); background:rgba(124,58,237,.15); }
+.trade-btn span { font-size:26px; display:block; margin-bottom:6px; }
+.trade-btn b { font-size:13px; font-weight:600; display:block; }
+.inp { background:var(--bg2); border:2px solid rgba(255,255,255,.1); border-radius:12px; padding:14px 16px; font-size:16px; color:var(--t1); font-family:inherit; width:100%; outline:none; transition:border-color .2s; }
+.inp:focus { border-color:var(--accent); }
+.inp::placeholder { color:var(--t2); }
+.svc-btn { background:var(--bg2); border:2px solid transparent; border-radius:12px; padding:13px 14px; display:flex; align-items:center; gap:12px; cursor:pointer; color:var(--t1); width:100%; margin-bottom:8px; font-family:inherit; transition:all .2s; }
+.svc-btn.sel { border-color:var(--green); background:rgba(16,185,129,.1); }
+.svc-icon { font-size:20px; width:28px; text-align:center; }
+.svc-name { font-size:14px; font-weight:500; }
+.svc-chk { margin-left:auto; width:20px; height:20px; border-radius:50%; border:2px solid rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:11px; transition:all .2s; flex-shrink:0; }
+.svc-btn.sel .svc-chk { background:var(--green); border-color:var(--green); }
 
-/* ── Screens ── */
-.screens { flex: 1; position: relative; overflow: hidden; }
-.screen { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 20px 20px 0; opacity: 0; transform: translateX(60px); transition: all 0.3s ease; pointer-events: none; overflow-y: auto; }
-.screen.active { opacity: 1; transform: translateX(0); pointer-events: all; }
-.screen.prev { opacity: 0; transform: translateX(-60px); }
+.bottom-nav { padding:14px 20px 28px; display:flex; gap:10px; flex-shrink:0; }
+.btn-back { background:rgba(255,255,255,.08); border:none; border-radius:12px; padding:14px 18px; color:var(--t1); font-family:inherit; font-size:14px; font-weight:600; cursor:pointer; }
+.btn-next { flex:1; background:var(--accent); border:none; border-radius:12px; padding:14px; color:#fff; font-family:inherit; font-size:15px; font-weight:700; cursor:pointer; transition:opacity .2s; }
+.btn-next:disabled { opacity:.35; cursor:not-allowed; }
 
-.step-label { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; color: var(--accent2); text-transform: uppercase; margin-bottom: 10px; }
-.screen h2 { font-size: clamp(22px, 5.5vw, 28px); font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
-.screen h2 em { font-style: normal; color: #a78bfa; }
-.screen p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 20px; }
-
-/* Trade grid */
-.trade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.trade-btn { background: var(--bg-secondary); border: 2px solid transparent; border-radius: 12px; padding: 14px 10px; text-align: center; cursor: pointer; transition: all 0.2s; color: var(--text-primary); font-family: inherit; }
-.trade-btn:active { transform: scale(0.97); }
-.trade-btn.selected { border-color: var(--accent); background: rgba(124,58,237,0.15); }
-.trade-btn .trade-icon { font-size: 26px; display: block; margin-bottom: 6px; }
-.trade-btn .trade-name { font-size: 13px; font-weight: 600; }
-
-/* Text input */
-.input-field { background: var(--bg-secondary); border: 2px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 14px 16px; font-size: 16px; color: var(--text-primary); font-family: inherit; width: 100%; outline: none; transition: border-color 0.2s; }
-.input-field:focus { border-color: var(--accent); }
-.input-field::placeholder { color: var(--text-secondary); }
-
-/* Services */
-.service-grid { display: flex; flex-direction: column; gap: 8px; }
-.service-btn { background: var(--bg-secondary); border: 2px solid transparent; border-radius: 12px; padding: 14px 16px; text-align: left; cursor: pointer; display: flex; align-items: center; gap: 12px; color: var(--text-primary); font-family: inherit; transition: all 0.2s; }
-.service-btn.selected { border-color: var(--green); background: rgba(16,185,129,0.1); }
-.service-icon { font-size: 20px; width: 28px; text-align: center; }
-.service-name { font-size: 14px; font-weight: 500; }
-.service-check { margin-left: auto; width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 11px; transition: all 0.2s; }
-.service-btn.selected .service-check { background: var(--green); border-color: var(--green); }
-
-/* Phone screen */
-.optional-label { font-size: 11px; color: var(--text-secondary); margin-top: 6px; }
-
-/* ── Preview screen ── */
-.preview-card { background: var(--bg-secondary); border-radius: 16px; overflow: hidden; margin-bottom: 14px; }
-.preview-hero { padding: 20px; background: linear-gradient(135deg, #4c1d95 0%, #1e1b4b 100%); }
-.preview-avatar { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 18px; margin-bottom: 10px; }
-.preview-biz-name { font-size: 20px; font-weight: 700; }
-.preview-suburb { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 2px; }
-.preview-rows { padding: 4px 0; }
-.preview-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-.preview-row:last-child { border-bottom: none; }
-.preview-row-icon { width: 36px; height: 36px; border-radius: 10px; background: var(--bg-tertiary); display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
-.preview-row-label { font-size: 11px; color: var(--text-secondary); }
-.preview-row-value { font-size: 14px; font-weight: 500; margin-top: 1px; }
-.preview-row-value.accent { color: var(--i-button); }
-
-.preview-services { display: flex; flex-wrap: wrap; gap: 6px; padding: 14px 16px; }
-.service-pill { background: rgba(124,58,237,0.2); border: 1px solid rgba(124,58,237,0.4); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 500; }
-
-.cta-box { background: linear-gradient(135deg, #14532d 0%, #052e16 100%); border-radius: 16px; padding: 20px; text-align: center; }
-.cta-box h3 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
-.cta-box p { font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 16px; line-height: 1.5; }
-.cta-deploy-btn { display: block; width: 100%; padding: 15px; background: var(--green); border: none; border-radius: 12px; color: #000; font-size: 15px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity 0.2s; letter-spacing: 0.01em; }
-.cta-deploy-btn:active { opacity: 0.85; }
-.cta-price { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 10px; }
-
-/* ── Bottom nav ── */
-.bottom-nav { padding: 14px 20px 28px; display: flex; gap: 10px; }
-.btn-back { background: rgba(255,255,255,0.08); border: none; border-radius: 12px; padding: 14px 18px; color: var(--text-primary); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
-.btn-next { flex: 1; background: var(--accent); border: none; border-radius: 12px; padding: 14px; color: #fff; font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; transition: opacity 0.2s; }
-.btn-next:disabled { opacity: 0.35; cursor: not-allowed; }
-.btn-next:not(:disabled):active { opacity: 0.85; }
-.btn-next.hidden { display: none; }
-
-/* Success toast */
-.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--green); color: #000; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; white-space: nowrap; z-index: 999; }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-/* Powered by */
-.powered-by { text-align: center; font-size: 10px; color: rgba(255,255,255,0.2); padding: 0 0 6px; }
+/* ── Widget (full iTabs slider) ── */
+#widget-view { flex:1; display:none; flex-direction:column; overflow:hidden; }
+#widget-view.show { display:flex; }
+.w-prog { display:flex; gap:4px; padding:12px 16px 8px; position:absolute; top:0; left:0; right:0; z-index:100; background:linear-gradient(to bottom,rgba(0,0,0,.9),transparent); }
+.w-ps { flex:1; height:3px; border-radius:2px; background:rgba(255,255,255,.2); transition:background .2s; }
+.w-ps.viewed { background:rgba(255,255,255,.6); }
+.w-ps.active { background:var(--accent); }
+.cards-wrap { flex:1; position:relative; overflow:hidden; }
+.card { position:absolute; inset:0; display:flex; flex-direction:column; opacity:0; transform:translateX(100%); transition:all .3s ease; pointer-events:none; }
+.card.active { opacity:1; transform:translateX(0); pointer-events:all; }
+.card.prev { opacity:0; transform:translateX(-100%); }
+.card-hero { padding:52px 20px 20px; min-height:38%; display:flex; flex-direction:column; justify-content:flex-end; }
+.card-tag { font-size:10px; font-weight:700; letter-spacing:.15em; color:var(--t2); text-transform:uppercase; margin-bottom:8px; }
+.tag-green { color:#6ee7b7; } .tag-amber { color:#fcd34d; } .tag-cyan { color:#67e8f9; } .tag-purple { color:#a78bfa; }
+.card-headline { font-size:clamp(20px,5vw,26px); font-weight:700; line-height:1.25; }
+.card-headline em { font-style:normal; }
+.hero-default { background:linear-gradient(135deg,#1e293b,#0f172a); }
+.hero-purple { background:linear-gradient(135deg,#4c1d95,#1e1b4b); }
+.hero-green { background:linear-gradient(135deg,#14532d,#052e16); }
+.hero-amber { background:linear-gradient(135deg,#78350f,#431407); }
+.hero-cyan { background:linear-gradient(135deg,#164e63,#0c4a6e); }
+.hero-default em { color:#cbd5e1; } .hero-purple em { color:#a78bfa; } .hero-green em { color:#6ee7b7; } .hero-amber em { color:#fcd34d; } .hero-cyan em { color:#67e8f9; }
+.card-body { flex:1; background:var(--bg2); padding:20px; overflow-y:auto; }
+.card-summary { font-size:14px; color:var(--t2); line-height:1.7; margin-bottom:16px; }
+.i-buttons { display:flex; flex-wrap:wrap; gap:8px; }
+.i-btn { display:flex; align-items:center; gap:6px; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3); border-radius:20px; padding:7px 14px; cursor:pointer; font-family:inherit; font-size:12px; font-weight:600; color:var(--t1); transition:all .2s; }
+.i-dot { width:16px; height:16px; border-radius:50%; background:var(--amber); display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:800; color:#000; flex-shrink:0; }
+/* Lead card */
+.lead-card { background:var(--bg2); }
+.lead-hero { padding:52px 20px 20px; min-height:38%; display:flex; flex-direction:column; justify-content:flex-end; }
+.lead-body { flex:1; padding:20px; overflow-y:auto; }
+.lead-form input { background:var(--bg3); border:1.5px solid rgba(255,255,255,.1); border-radius:10px; padding:12px 14px; font-size:15px; color:var(--t1); font-family:inherit; width:100%; outline:none; margin-bottom:10px; transition:border-color .2s; }
+.lead-form input:focus { border-color:var(--accent); }
+.lead-form input::placeholder { color:var(--t2); }
+.lead-submit { width:100%; padding:14px; background:var(--green); border:none; border-radius:12px; color:#000; font-size:15px; font-weight:700; cursor:pointer; font-family:inherit; margin-top:4px; }
+.lead-success { text-align:center; padding:20px 0; }
+.lead-success .big { font-size:40px; margin-bottom:10px; }
+.lead-success h3 { font-size:18px; font-weight:700; margin-bottom:8px; }
+.lead-success p { font-size:13px; color:var(--t2); line-height:1.6; }
+.nav-area { display:flex; align-items:center; justify-content:space-between; padding:12px 20px 28px; flex-shrink:0; }
+.nav-btn { background:var(--bg2); border:none; border-radius:10px; width:44px; height:44px; color:var(--t1); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.nav-btn:disabled { opacity:.3; cursor:not-allowed; }
+.card-counter { font-size:13px; color:var(--t2); }
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s; z-index:200; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal-sheet { width:100%; max-width:430px; background:var(--bg3); border-radius:20px 20px 0 0; padding:20px; transform:translateY(100%); transition:transform .3s ease; }
+.modal-overlay.open .modal-sheet { transform:translateY(0); }
+.modal-handle { width:36px; height:4px; background:rgba(255,255,255,.2); border-radius:2px; margin:0 auto 16px; }
+.modal-term { font-size:17px; font-weight:700; margin-bottom:4px; }
+.modal-type { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--amber); margin-bottom:12px; }
+.modal-content { font-size:14px; color:var(--t2); line-height:1.7; }
+.modal-close { margin-top:20px; width:100%; padding:12px; background:rgba(255,255,255,.08); border:none; border-radius:10px; color:var(--t1); font-size:14px; font-weight:600; cursor:pointer; }
+.back-to-config { display:flex; align-items:center; gap:6px; background:rgba(255,255,255,.06); border:none; border-radius:8px; padding:8px 14px; color:var(--t2); font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:2px; }
+.powered { text-align:center; font-size:10px; color:rgba(255,255,255,.2); padding:0 0 6px; flex-shrink:0; }
 </style>
 </head>
 <body>
 <div class="app">
 
-  <!-- Progress -->
-  <div class="progress-bar-wrap" id="progressBar"></div>
+  <div class="prog-wrap" id="progBar"></div>
 
-  <!-- Screens -->
-  <div class="screens" id="screens">
+  <!-- CONFIGURATOR -->
+  <div id="configurator">
+    <div class="screens" id="screens">
 
-    <!-- Step 0: Welcome -->
-    <div class="screen active" id="screen-0">
-      <div class="step-label">✨ Free Preview</div>
-      <h2>See your <em>quote widget</em> before you buy</h2>
-      <p>Answer 4 quick questions. We'll build a live preview with your business name on it — takes 60 seconds.</p>
-      <div style="margin-top: 8px; background: var(--bg-secondary); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">📱</span><span style="font-size:13px; color:var(--text-secondary);">Mobile-first — works on any device</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">⚡</span><span style="font-size:13px; color:var(--text-secondary);">Deployed to your own link, same day</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">💰</span><span style="font-size:13px; color:var(--text-secondary);">$290 one-off — no ongoing fees, ever</span></div>
-        <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🔒</span><span style="font-size:13px; color:var(--text-secondary);">Yours to keep — we never hold it hostage</span></div>
-      </div>
-    </div>
-
-    <!-- Step 1: Trade -->
-    <div class="screen" id="screen-1">
-      <div class="step-label">Step 1 of 4 — Your Trade</div>
-      <h2>What's your <em>trade?</em></h2>
-      <p>We'll load the right services for you.</p>
-      <div class="trade-grid" id="tradeGrid">
-        <button class="trade-btn" data-trade="Fencing" data-color="#059669" onclick="selectTrade(this)"><span class="trade-icon">🪵</span><span class="trade-name">Fencing</span></button>
-        <button class="trade-btn" data-trade="Plumbing" data-color="#0891b2" onclick="selectTrade(this)"><span class="trade-icon">🔧</span><span class="trade-name">Plumbing</span></button>
-        <button class="trade-btn" data-trade="Electrical" data-color="#d97706" onclick="selectTrade(this)"><span class="trade-icon">⚡</span><span class="trade-name">Electrical</span></button>
-        <button class="trade-btn" data-trade="Landscaping" data-color="#16a34a" onclick="selectTrade(this)"><span class="trade-icon">🌿</span><span class="trade-name">Landscaping</span></button>
-        <button class="trade-btn" data-trade="Painting" data-color="#7c3aed" onclick="selectTrade(this)"><span class="trade-icon">🎨</span><span class="trade-name">Painting</span></button>
-        <button class="trade-btn" data-trade="Concreting" data-color="#78716c" onclick="selectTrade(this)"><span class="trade-icon">🏗️</span><span class="trade-name">Concreting</span></button>
-        <button class="trade-btn" data-trade="Roofing" data-color="#dc2626" onclick="selectTrade(this)"><span class="trade-icon">🏠</span><span class="trade-name">Roofing</span></button>
-        <button class="trade-btn" data-trade="Tiling" data-color="#0e7490" onclick="selectTrade(this)"><span class="trade-icon">🔲</span><span class="trade-name">Tiling</span></button>
-      </div>
-    </div>
-
-    <!-- Step 2: Business Name -->
-    <div class="screen" id="screen-2">
-      <div class="step-label">Step 2 of 4 — Your Business</div>
-      <h2>What's your <em>business name?</em></h2>
-      <p>This appears on your widget — exactly as you type it.</p>
-      <input class="input-field" id="bizNameInput" type="text" placeholder="e.g. Pete's Fencing Co" maxlength="40" oninput="onBizName(this.value)">
-    </div>
-
-    <!-- Step 3: Services -->
-    <div class="screen" id="screen-3">
-      <div class="step-label">Step 3 of 4 — Your Services</div>
-      <h2>Pick your <em>main services</em></h2>
-      <p>Choose up to 4. These become your widget cards.</p>
-      <div class="service-grid" id="serviceGrid"></div>
-    </div>
-
-    <!-- Step 4: Phone -->
-    <div class="screen" id="screen-4">
-      <div class="step-label">Step 4 of 4 — Contact</div>
-      <h2>Your <em>phone number?</em></h2>
-      <p>Shows on your widget so customers can call or text directly.</p>
-      <input class="input-field" id="phoneInput" type="tel" placeholder="e.g. 0412 345 678" maxlength="20" oninput="onPhone(this.value)">
-      <p class="optional-label">Optional — you can add it later</p>
-    </div>
-
-    <!-- Step 5: Preview -->
-    <div class="screen" id="screen-5">
-      <div class="step-label">🎉 Here's your widget</div>
-      <h2>This is <em>yours</em></h2>
-
-      <div class="preview-card">
-        <div class="preview-hero" id="previewHero">
-          <div class="preview-avatar" id="previewAvatar">?</div>
-          <div class="preview-biz-name" id="previewBizName">Your Business</div>
-          <div class="preview-suburb" id="previewSuburb">Perth, WA</div>
+      <!-- Step 0 -->
+      <div class="screen active" id="s0">
+        <div class="step-label">✨ Free Preview</div>
+        <h2>See your <em>quote widget</em> before you buy</h2>
+        <p>Answer 4 quick questions and we'll build a live widget with your name on it — takes 60 seconds.</p>
+        <div style="background:var(--bg2);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;">
+          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">📱</span><span style="font-size:13px;color:var(--t2);">Mobile-first — works on any device</span></div>
+          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">⚡</span><span style="font-size:13px;color:var(--t2);">Deployed to your own link, same day</span></div>
+          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">💰</span><span style="font-size:13px;color:var(--t2);">$290 one-off — no ongoing fees, ever</span></div>
+          <div style="display:flex;align-items:center;gap:10px;"><span style="font-size:20px;">🔒</span><span style="font-size:13px;color:var(--t2);">Yours to keep — we never hold it hostage</span></div>
         </div>
-        <div class="preview-rows">
-          <div class="preview-row">
-            <div class="preview-row-icon">🏗️</div>
-            <div>
-              <div class="preview-row-label">Trade</div>
-              <div class="preview-row-value" id="previewTrade">—</div>
-            </div>
-          </div>
-          <div class="preview-row">
-            <div class="preview-row-icon">📍</div>
-            <div>
-              <div class="preview-row-label">Service Area</div>
-              <div class="preview-row-value">Perth, Western Australia</div>
-            </div>
-          </div>
-          <div class="preview-row">
-            <div class="preview-row-icon">📞</div>
-            <div>
-              <div class="preview-row-label">Phone</div>
-              <div class="preview-row-value accent" id="previewPhone">Add in Step 4</div>
-            </div>
-          </div>
-        </div>
-        <div class="preview-services" id="previewServices"></div>
       </div>
 
-      <div class="cta-box">
-        <h3>Ready to go live?</h3>
-        <p>We'll deploy this with your branding to a shareable link. Same day. One-off payment.</p>
-        <button class="cta-deploy-btn" onclick="onDeploy()">Get mine deployed →</button>
-        <div class="cta-price">$290 one-off · no ongoing fees · yours forever</div>
+      <!-- Step 1 -->
+      <div class="screen" id="s1">
+        <div class="step-label">Step 1 of 4 — Your Trade</div>
+        <h2>What's your <em>trade?</em></h2>
+        <p>We'll load the right services for you.</p>
+        <div class="trade-grid" id="tradeGrid"></div>
       </div>
 
-      <div style="height: 20px;"></div>
+      <!-- Step 2 -->
+      <div class="screen" id="s2">
+        <div class="step-label">Step 2 of 4 — Your Business</div>
+        <h2>What's your <em>business name?</em></h2>
+        <p>This appears on your widget — exactly as you type it.</p>
+        <input class="inp" id="bizInput" type="text" placeholder="e.g. Pete's Fencing Co" maxlength="40">
+      </div>
+
+      <!-- Step 3 -->
+      <div class="screen" id="s3">
+        <div class="step-label">Step 3 of 4 — Your Services</div>
+        <h2>Pick your <em>main services</em></h2>
+        <p>Choose up to 4. Each one becomes a swipeable card in your widget.</p>
+        <div id="svcGrid"></div>
+      </div>
+
+      <!-- Step 4 -->
+      <div class="screen" id="s4">
+        <div class="step-label">Step 4 of 4 — Contact</div>
+        <h2>Your <em>phone number?</em></h2>
+        <p>Shows on your widget so customers can call directly.</p>
+        <input class="inp" id="phoneInput" type="tel" placeholder="e.g. 0412 345 678" maxlength="20">
+        <p style="font-size:11px;color:var(--t2);margin-top:8px;">Optional — you can add it later</p>
+      </div>
+
     </div>
 
+    <div class="bottom-nav" id="bottomNav">
+      <button class="btn-back" id="btnBack" style="display:none" onclick="goBack()">←</button>
+      <button class="btn-next" id="btnNext" onclick="goNext()">Let's go →</button>
+    </div>
   </div>
 
-  <!-- Bottom nav -->
-  <div class="bottom-nav" id="bottomNav">
-    <button class="btn-back" id="btnBack" onclick="goBack()" style="display:none">←</button>
-    <button class="btn-next" id="btnNext" onclick="goNext()">Let's go →</button>
+  <!-- WIDGET VIEW -->
+  <div id="widget-view">
+    <div style="position:relative;flex-shrink:0;">
+      <button class="back-to-config" onclick="showConfig()" style="margin:10px 16px 0;">← Edit my details</button>
+    </div>
+    <div style="flex:1;position:relative;overflow:hidden;" id="widgetWrap">
+      <div class="w-prog" id="wProg"></div>
+      <div class="cards-wrap" id="cardsWrap"></div>
+      <div class="nav-area">
+        <button class="nav-btn" id="wPrev" onclick="wNav(-1)">←</button>
+        <span class="card-counter" id="wCounter">1 / 1</span>
+        <button class="nav-btn" id="wNext" onclick="wNav(1)">→</button>
+      </div>
+    </div>
   </div>
 
-  <div class="powered-by">Powered by iTabs — itabs.ai</div>
+  <div class="powered">Powered by iTabs — itabs.ai</div>
 </div>
 
-<div class="toast" id="toast">✅ Request sent! We'll be in touch.</div>
+<!-- Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-term" id="mTerm"></div>
+    <div class="modal-type" id="mType"></div>
+    <div class="modal-content" id="mContent"></div>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
 
 <script>
-const TOTAL_STEPS = 5; // 0-5
-let currentStep = 0;
-
-const state = {
-  trade: '',
-  tradeColor: '#7c3aed',
-  bizName: '',
-  services: [],
-  phone: ''
-};
+const TRADES = [
+  {name:"Fencing",icon:"🪵",color:"#059669"},
+  {name:"Plumbing",icon:"🔧",color:"#0891b2"},
+  {name:"Electrical",icon:"⚡",color:"#d97706"},
+  {name:"Landscaping",icon:"🌿",color:"#16a34a"},
+  {name:"Painting",icon:"🎨",color:"#7c3aed"},
+  {name:"Concreting",icon:"🏗️",color:"#78716c"},
+  {name:"Roofing",icon:"🏠",color:"#dc2626"},
+  {name:"Tiling",icon:"🔲",color:"#0e7490"},
+];
 
 const SERVICES = {
-  Fencing:    [{icon:'🪵',name:'Colorbond Fencing'},{icon:'🌳',name:'Timber Fencing'},{icon:'🏊',name:'Pool Fencing'},{icon:'🔗',name:'Chain Wire Fencing'},{icon:'🎨',name:'Fence Painting'},{icon:'🔩',name:'Gate Installation'}],
-  Plumbing:   [{icon:'🚰',name:'Blocked Drains'},{icon:'🚿',name:'Hot Water Systems'},{icon:'🔧',name:'Leak Repairs'},{icon:'🏗️',name:'New Installations'},{icon:'🪠',name:'Toilet Repairs'},{icon:'💧',name:'Water Pressure'}],
-  Electrical: [{icon:'💡',name:'Switchboard Upgrades'},{icon:'🔌',name:'Power Points'},{icon:'💡',name:'LED Lighting'},{icon:'🔋',name:'Solar Installs'},{icon:'🚨',name:'Safety Inspections'},{icon:'🏠',name:'New Builds'}],
-  Landscaping:[{icon:'🌿',name:'Garden Design'},{icon:'🏡',name:'Lawn Mowing'},{icon:'🪨',name:'Retaining Walls'},{icon:'💦',name:'Irrigation Systems'},{icon:'🌳',name:'Tree Removal'},{icon:'🧱',name:'Paving'}],
-  Painting:   [{icon:'🎨',name:'Interior Painting'},{icon:'🏠',name:'Exterior Painting'},{icon:'🪟',name:'Roof Painting'},{icon:'🔨',name:'Prep & Repairs'},{icon:'✨',name:'Feature Walls'},{icon:'🏢',name:'Commercial'}],
-  Concreting: [{icon:'🏗️',name:'Driveways'},{icon:'🏊',name:'Pool Surrounds'},{icon:'🪜',name:'Pathways'},{icon:'🧱',name:'Slabs & Footings'},{icon:'🔨',name:'Exposed Aggregate'},{icon:'🏡',name:'Patios'}],
-  Roofing:    [{icon:'🏠',name:'Roof Restorations'},{icon:'🔧',name:'Leak Repairs'},{icon:'🪨',name:'Tile Re-bedding'},{icon:'🏗️',name:'Re-roofing'},{icon:'💧',name:'Gutters & Downpipes'},{icon:'🔍',name:'Roof Inspections'}],
-  Tiling:     [{icon:'🔲',name:'Floor Tiling'},{icon:'🚿',name:'Bathroom Tiling'},{icon:'🍳',name:'Kitchen Splashbacks'},{icon:'🏊',name:'Pool Tiling'},{icon:'🔧',name:'Grout Repairs'},{icon:'🏠',name:'Outdoor Areas'}],
+  Fencing:    [{icon:"🪵",name:"Colorbond Fencing",summary:"Supply and install Colorbond steel fencing — durable, low maintenance, and available in a range of colours to match your home.",info:"Colorbond is the most popular residential fencing choice in Perth — it's termite-proof, rust-resistant, and backed by a manufacturer warranty."},{icon:"🌳",name:"Timber Fencing",summary:"Hardwood and treated pine timber fencing for that classic WA look. Great for properties wanting warmth and character.",info:"Timber fencing adds natural beauty but requires periodic oiling or painting to maintain its look in the Perth climate."},{icon:"🏊",name:"Pool Fencing",summary:"Compliant glass and aluminium pool fencing installed to Australian Standards AS1926. Mandatory for all WA pools.",info:"All pool fencing in WA must comply with AS1926 and pass a council inspection. We handle the paperwork for you."},{icon:"🔗",name:"Chain Wire Fencing",summary:"Cost-effective chain wire fencing for rural, industrial, and commercial properties. Fast to install, long-lasting.",info:"Chain wire is the most economical fencing option for large areas — ideal for rural blocks, school boundaries, and commercial yards."},{icon:"🎨",name:"Fence Painting",summary:"Restore tired timber and metal fencing with a professional repaint. Extends life and improves street appeal.",info:"A fresh coat of paint on your fence can dramatically boost the kerb appeal of your home for a fraction of the cost of replacement."},{icon:"🔩",name:"Gate Installation",summary:"Automated and manual gate installation — sliding, swing, and driveway gates to suit any property.",info:"Automated gates add security and convenience. We install all major brands and provide remotes, keypads, and intercom integration."}],
+  Plumbing:   [{icon:"🚰",name:"Blocked Drains",summary:"Fast diagnosis and clearing of blocked drains using high-pressure jetting and CCTV inspection.",info:"Most blocked drains in Perth are caused by tree root intrusion or grease build-up. We fix the blockage and show you exactly what caused it."},{icon:"🚿",name:"Hot Water Systems",summary:"Supply and install electric, gas, heat pump, and solar hot water systems from all major brands.",info:"Heat pump hot water systems can cut your hot water energy costs by up to 70% compared to a standard electric system."},{icon:"🔧",name:"Leak Repairs",summary:"Locate and repair leaking pipes, taps, and fixtures quickly to prevent water damage and high bills.",info:"Even a small dripping tap can waste up to 20,000 litres of water per year — and leak detection today prevents costly structural damage tomorrow."},{icon:"🏗️",name:"New Installations",summary:"Full plumbing fit-out for new homes, extensions, and renovations. We work with your builder from slab to final inspection.",info:"Getting a plumber involved early in a renovation saves money — it's much cheaper to relocate pipes before walls are closed in."},{icon:"🪠",name:"Toilet Repairs",summary:"Fix running toilets, blocked S-bends, leaking cisterns, and broken flush mechanisms same day.",info:"A running toilet can waste up to 200 litres per day. Most repairs take under an hour and cost far less than your next water bill."},{icon:"💧",name:"Water Pressure",summary:"Diagnose and fix low or excessively high water pressure issues that damage appliances and waste water.",info:"Ideal household water pressure is between 200-500 kPa. Too high and it damages appliances; too low and showers become frustrating."}],
+  Electrical: [{icon:"💡",name:"Switchboard Upgrades",summary:"Upgrade old ceramic fuse boards to modern safety switches and circuit breakers — required by law for many older homes.",info:"Homes built before 1990 often have outdated switchboards that don't meet current safety standards. An upgrade protects your family and may be required for insurance purposes."},{icon:"🔌",name:"Power Points",summary:"Install new power points, double GPOs, and USB outlets throughout your home or office.",info:"Installing additional power points eliminates dangerous power board daisy-chaining — a leading cause of household fires in Australia."},{icon:"🌟",name:"LED Lighting",summary:"Full LED lighting upgrades and new installations — save up to 80% on lighting energy costs.",info:"Switching to LED lighting typically pays for itself within 12–18 months through reduced power bills and significantly lower globe replacement costs."},{icon:"🔋",name:"Solar Installs",summary:"Design and install rooftop solar systems, battery storage, and EV chargers for Perth homes and businesses.",info:"Perth has the highest solar irradiance of any major city in Australia — making it one of the best places in the world to go solar."},{icon:"🚨",name:"Safety Inspections",summary:"Comprehensive electrical safety inspections for pre-purchase, rental compliance, and peace of mind.",info:"Electrical faults are one of the leading causes of house fires in Australia. A safety inspection identifies risks before they become emergencies."},{icon:"🏠",name:"New Builds",summary:"Full electrical fit-out for new homes — from frame stage through to final connection and certification.",info:"Getting your electrician involved at design stage allows you to plan data points, smart home pre-wiring, and solar-ready infrastructure cost-effectively."}],
+  Landscaping:[{icon:"🌿",name:"Garden Design",summary:"Custom garden design and landscaping that suits your lifestyle, soil, and the Perth climate.",info:"A well-designed Perth garden uses waterwise plants and mulching to stay beautiful through summer while cutting your reticulation costs significantly."},{icon:"🏡",name:"Lawn Mowing",summary:"Regular lawn mowing and edging services — weekly, fortnightly, or monthly to suit your needs.",info:"Keeping your lawn at the right height (around 30–40mm for most Perth varieties) encourages deeper root growth and reduces water requirements."},{icon:"🪨",name:"Retaining Walls",summary:"Limestone, timber, and concrete sleeper retaining walls built to hold and transform sloping blocks.",info:"Any retaining wall over 500mm in WA requires council-approved plans from a structural engineer. We manage this process for you."},{icon:"💦",name:"Irrigation Systems",summary:"Design and install reticulation systems that water efficiently and comply with Perth's water restrictions.",info:"A properly designed reticulation system uses up to 50% less water than hand-watering while achieving better plant coverage and health."},{icon:"🌳",name:"Tree Removal",summary:"Safe removal of trees and stumps, including hazardous and large trees near structures.",info:"In Perth, removing a tree over 4m tall on a residential property may require council approval. We handle the permit process for you."},{icon:"🧱",name:"Paving",summary:"Supply and lay clay, concrete, and natural stone paving for driveways, patios, and paths.",info:"Permeable paving options allow rainwater to soak through to the soil — reducing runoff and helping to recharge groundwater, which is increasingly important in Perth."}],
+  Painting:   [{icon:"🎨",name:"Interior Painting",summary:"Full interior paint jobs including walls, ceilings, trims, and feature walls — prep and clean included.",info:"Proper surface preparation accounts for about 80% of a quality paint job. We never skip prep — it's what separates a 2-year finish from a 10-year one."},{icon:"🏠",name:"Exterior Painting",summary:"Exterior repaints that protect your home from the harsh WA sun and salt air.",info:"Perth's UV intensity fades and cracks exterior paint faster than most of Australia. Using a high-quality UV-resistant paint can double the lifespan of your exterior."},{icon:"🪟",name:"Roof Painting",summary:"Restore and repaint tiled and iron roofs — extend life, improve efficiency, and refresh appearance.",info:"A light-coloured roof coating can reflect up to 90% of solar heat, reducing indoor temperatures by several degrees and cutting air conditioning costs."},{icon:"🔨",name:"Prep & Repairs",summary:"Fill cracks, sand surfaces, seal stains, and repair damaged plaster before any painting begins.",info:"Skipping prep work leads to paint peeling within 1–2 years. We address all surface issues first to ensure a long-lasting, professional result."},{icon:"✨",name:"Feature Walls",summary:"Create a stunning feature wall with bold colours, textured finishes, or decorative paint effects.",info:"A well-executed feature wall can transform a room without the cost of a full repaint — and is one of the highest-ROI home improvement investments."},{icon:"🏢",name:"Commercial",summary:"Commercial painting for offices, retail, warehouses, and strata properties — flexible scheduling to minimise disruption.",info:"We work outside business hours and on weekends to minimise disruption to your operation. All commercial work includes a written warranty."}],
+  Concreting: [{icon:"🏗️",name:"Driveways",summary:"Exposed aggregate, plain, and stencilled concrete driveways that last decades with minimal maintenance.",info:"Concrete driveways have a lifespan of 25–50 years with minimal maintenance — significantly longer than asphalt or paving brick alternatives."},{icon:"🏊",name:"Pool Surrounds",summary:"Non-slip concrete and exposed aggregate pool surrounds built to complement your pool and handle Perth heat.",info:"Pool surrounds need to be non-slip and heat-reflective. Exposed aggregate is the most popular choice in Perth for both safety and aesthetics."},{icon:"🪜",name:"Pathways",summary:"Concrete garden paths, entry paths, and walkways — functional and designed to suit your home's style.",info:"Concrete pathways add structure and kerb appeal while reducing mud and weed growth around your home. Can be coloured or textured to match your home."},{icon:"🧱",name:"Slabs & Footings",summary:"Structural concrete slabs, garage floors, shed pads, and footings for extensions and new builds.",info:"A properly reinforced concrete slab is critical to the structural integrity of any build. We use engineered mix designs appropriate to your soil conditions."},{icon:"🔨",name:"Exposed Aggregate",summary:"Decorative exposed aggregate finishes — beautiful, durable, and non-slip for driveways, paths, and entertaining areas.",info:"Exposed aggregate is created by washing the surface concrete before it sets to reveal the natural stone below. It's one of Perth's most popular decorative concrete options."},{icon:"🏡",name:"Patios",summary:"Alfresco and patio slabs to create the perfect outdoor entertaining space for the Perth lifestyle.",info:"A covered alfresco slab adds significant value to Perth properties — and with the right design, can be council-approved without a full building permit."}],
+  Roofing:    [{icon:"🏠",name:"Roof Restorations",summary:"Full roof restoration — clean, re-bed, re-point, prime, and paint to extend roof life by 10–15 years.",info:"A professional roof restoration is typically 1/3 the cost of a full re-roof and can add 15+ years to the life of your existing tiles."},{icon:"🔧",name:"Leak Repairs",summary:"Diagnose and fix roof leaks fast — including flashing, valley iron, and ridge capping repairs.",info:"Most roof leaks in Perth are caused by deteriorated pointing, cracked ridge caps, or failed flashing — not broken tiles. We identify the true cause every time."},{icon:"🪨",name:"Tile Re-bedding",summary:"Re-bed and re-point loose and cracked ridge and hip tiles before they become a safety hazard.",info:"Loose ridge tiles are common on Perth roofs over 20 years old. Re-bedding costs a fraction of what water damage from a dislodged tile would cause."},{icon:"🏗️",name:"Re-roofing",summary:"Full roof replacements in Colorbond, terracotta, and concrete tiles — including sarking and insulation.",info:"Re-roofing is a major investment but significantly improves energy efficiency, weatherproofing, and property value. Colorbond is the most popular choice for re-roofing in WA."},{icon:"💧",name:"Gutters & Downpipes",summary:"Supply and install new gutters, downpipes, and leaf guards. Fix sagging, leaking, or overflowing gutters.",info:"Blocked or leaking gutters are the leading cause of water damage to Perth homes. Keeping them clear and in good condition protects your foundations and walls."},{icon:"🔍",name:"Roof Inspections",summary:"Comprehensive roof inspections for pre-purchase, insurance, or general condition — with written report.",info:"A pre-purchase roof inspection can identify thousands of dollars in repairs before you buy — and gives you negotiating power with the vendor."}],
+  Tiling:     [{icon:"🔲",name:"Floor Tiling",summary:"Supply and lay porcelain, ceramic, and natural stone floor tiles throughout your home or commercial space.",info:"Porcelain tiles are the most popular choice for Perth homes — they're durable, low maintenance, and stay cool underfoot even in summer heat."},{icon:"🚿",name:"Bathroom Tiling",summary:"Full bathroom tile installations including waterproofing, wall and floor tiles, and wet area compliance.",info:"All wet areas in WA must be waterproofed before tiling by a licensed waterproofer. We handle both waterproofing and tiling for a single point of responsibility."},{icon:"🍳",name:"Kitchen Splashbacks",summary:"Designer kitchen splashbacks in glass, porcelain, and natural stone — protect walls and transform your kitchen.",info:"A well-chosen splashback can become the centrepiece of a kitchen renovation — and protect your walls from moisture and heat damage for decades."},{icon:"🏊",name:"Pool Tiling",summary:"Waterline and full pool tiling in glass mosaic, ceramic, and stone — repair and new installations.",info:"Pool tiles take a beating from chemicals, UV, and ground movement. Using pool-specific adhesive and grout is essential for a lasting result."},{icon:"🔧",name:"Grout Repairs",summary:"Re-grout and restore tired, cracked, or discoloured grout in bathrooms, kitchens, and living areas.",info:"Cracked or missing grout allows water into the substrate — causing mould, structural damage, and costly repairs. Re-grouting is a cost-effective solution."},{icon:"🏠",name:"Outdoor Areas",summary:"Alfresco, patio, and outdoor entertaining area tiling — non-slip, frost-resistant, and built for Perth's climate.",info:"Outdoor tiles need to be rated R11 or higher for slip resistance. We only use outdoor-rated tiles and adhesives that can handle Perth's temperature extremes."}],
 };
 
-function initProgress() {
-  const bar = document.getElementById('progressBar');
+const HERO_THEMES = ["hero-purple","hero-green","hero-amber","hero-cyan","hero-default"];
+const TAG_THEMES = ["tag-purple","tag-green","tag-amber","tag-cyan",""];
+
+let step = 0;
+let trade = "", bizName = "", services = [], phone = "";
+let wCurrent = 0, wCards = [];
+const TOTAL_STEPS = 5;
+
+// Init trade grid
+(function(){
+  const g = document.getElementById('tradeGrid');
+  TRADES.forEach(t => {
+    const b = document.createElement('button');
+    b.className = 'trade-btn';
+    b.dataset.trade = t.name;
+    b.dataset.color = t.color;
+    b.innerHTML = `<span>${t.icon}</span><b>${t.name}</b>`;
+    b.onclick = () => { trade = t.name; services = [];
+      document.querySelectorAll('.trade-btn').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel'); updateNav(); };
+    g.appendChild(b);
+  });
+  document.getElementById('bizInput').oninput = e => { bizName = e.target.value; updateNav(); };
+  document.getElementById('phoneInput').oninput = e => { phone = e.target.value; };
+  renderProg();
+  updateNav();
+})();
+
+function renderProg() {
+  const bar = document.getElementById('progBar');
   bar.innerHTML = '';
-  for (let i = 1; i <= TOTAL_STEPS; i++) {
-    const seg = document.createElement('div');
-    seg.className = 'prog-seg' + (i < currentStep ? ' done' : i === currentStep ? ' active' : '');
-    bar.appendChild(seg);
+  for(let i=1;i<=TOTAL_STEPS;i++){
+    const s = document.createElement('div');
+    s.className = 'ps' + (i<step?' done':i===step?' active':'');
+    bar.appendChild(s);
   }
 }
 
-function updateProgress() {
-  document.querySelectorAll('.prog-seg').forEach((s, i) => {
-    s.className = 'prog-seg' + (i+1 < currentStep ? ' done' : i+1 === currentStep ? ' active' : '');
+function updateProg() {
+  document.querySelectorAll('.ps').forEach((s,i)=>{
+    s.className = 'ps'+(i+1<step?' done':i+1===step?' active':'');
   });
 }
 
-function showScreen(index) {
-  document.querySelectorAll('.screen').forEach((s, i) => {
-    s.classList.remove('active','prev');
-    if (i === index) s.classList.add('active');
-    else if (i < index) s.classList.add('prev');
-  });
-  currentStep = index;
-  updateProgress();
-  updateNav();
+function canNext() {
+  if(step===0) return true;
+  if(step===1) return trade!=='';
+  if(step===2) return bizName.trim().length>=2;
+  if(step===3) return services.length>=1;
+  if(step===4) return true;
+  return false;
 }
 
 function updateNav() {
   const back = document.getElementById('btnBack');
   const next = document.getElementById('btnNext');
-  back.style.display = currentStep > 0 ? 'block' : 'none';
-  if (currentStep === TOTAL_STEPS) {
-    next.classList.add('hidden');
-  } else {
-    next.classList.remove('hidden');
-    next.disabled = !canProceed();
-    next.textContent = currentStep === 0 ? "Let's go →" : currentStep === TOTAL_STEPS - 1 ? 'See my widget →' : 'Next →';
-  }
+  back.style.display = step>0?'block':'none';
+  next.disabled = !canNext();
+  next.textContent = step===0?"Let's go →":step===TOTAL_STEPS-1?"Build my widget →":"Next →";
 }
 
-function canProceed() {
-  if (currentStep === 0) return true;
-  if (currentStep === 1) return state.trade !== '';
-  if (currentStep === 2) return state.bizName.trim().length >= 2;
-  if (currentStep === 3) return state.services.length >= 1;
-  if (currentStep === 4) return true;
-  return false;
+function showScreen(n) {
+  document.querySelectorAll('.screen').forEach((s,i)=>{
+    s.classList.remove('active','prev');
+    if(i===n) s.classList.add('active');
+    else if(i<n) s.classList.add('prev');
+  });
+  step = n;
+  updateProg();
+  updateNav();
 }
 
 function goNext() {
-  if (!canProceed()) return;
-  if (currentStep === TOTAL_STEPS - 1) buildPreview();
-  showScreen(currentStep + 1);
-  if (currentStep === 3) buildServiceGrid();
+  if(!canNext()) return;
+  if(step===3) buildSvcGrid();
+  if(step===TOTAL_STEPS-1) { buildWidget(); return; }
+  showScreen(step+1);
+  if(step===3) buildSvcGrid();
 }
 
-function goBack() {
-  if (currentStep > 0) showScreen(currentStep - 1);
+function goBack() { if(step>0) showScreen(step-1); if(step===3) buildSvcGrid(); }
+
+function buildSvcGrid() {
+  const g = document.getElementById('svcGrid');
+  g.innerHTML = '';
+  (SERVICES[trade]||[]).forEach(sv => {
+    const sel = services.includes(sv.name);
+    const b = document.createElement('button');
+    b.className = 'svc-btn'+(sel?' sel':'');
+    b.innerHTML = `<span class="svc-icon">${sv.icon}</span><span class="svc-name">${sv.name}</span><span class="svc-chk">${sel?'✓':''}</span>`;
+    b.onclick = () => {
+      const idx = services.indexOf(sv.name);
+      if(idx>-1){ services.splice(idx,1); b.classList.remove('sel'); b.querySelector('.svc-chk').textContent=''; }
+      else if(services.length<4){ services.push(sv.name); b.classList.add('sel'); b.querySelector('.svc-chk').textContent='✓'; }
+      updateNav();
+    };
+    g.appendChild(b);
+  });
 }
 
-function selectTrade(btn) {
-  document.querySelectorAll('.trade-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
-  state.trade = btn.dataset.trade;
-  state.tradeColor = btn.dataset.color;
-  state.services = [];
-  updateNav();
+// ── Build the real widget ──
+function buildWidget() {
+  const tradeData = TRADES.find(t=>t.name===trade) || {icon:'🔧',color:'#7c3aed'};
+  const initials = bizName.trim().split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?';
+
+  wCards = [];
+
+  // Intro card
+  wCards.push({
+    tag: `01 / ${trade.toUpperCase()}`,
+    tagClass: TAG_THEMES[0],
+    headline: `${bizName} — <em>Quality ${trade}</em> in Perth`,
+    heroClass: HERO_THEMES[0],
+    summary: `Welcome to ${bizName}. We're Perth-based ${trade.toLowerCase()} specialists delivering quality work across the metro area. Swipe to explore our services and get in touch for a free quote.`,
+    iButtons: [
+      { label: `About ${bizName}`, term: bizName, type: 'context', content: `${bizName} is a Perth-based ${trade.toLowerCase()} business offering expert services across the metro area. We pride ourselves on quality workmanship, fair pricing, and showing up when we say we will.` }
+    ]
+  });
+
+  // Service cards
+  services.forEach((name, i) => {
+    const svcData = (SERVICES[trade]||[]).find(s=>s.name===name);
+    wCards.push({
+      tag: `0${i+2} / SERVICE`,
+      tagClass: TAG_THEMES[(i+1)%TAG_THEMES.length],
+      headline: `<em>${name}</em>`,
+      heroClass: HERO_THEMES[(i+1)%HERO_THEMES.length],
+      summary: svcData ? svcData.summary : `Professional ${name.toLowerCase()} services delivered to the highest standard across Perth.`,
+      iButtons: [
+        { label: 'What\'s included', term: name, type: 'definition', content: svcData ? svcData.info : `We use quality materials and proven techniques to deliver ${name.toLowerCase()} that lasts. Ask us about our workmanship guarantee.` },
+        { label: 'Get a quote', term: 'Free Quote', type: 'why-it-matters', content: `Getting a quote is free and obligation-free. We'll assess your job, give you an honest price, and answer any questions. Most quotes are provided same day.` }
+      ]
+    });
+  });
+
+  // Lead capture card
+  wCards.push({ type: 'lead' });
+
+  renderWidget();
+  document.getElementById('configurator').style.display = 'none';
+  const wv = document.getElementById('widget-view');
+  wv.classList.add('show');
 }
 
-function onBizName(val) {
-  state.bizName = val;
-  updateNav();
+function renderWidget() {
+  const wrap = document.getElementById('cardsWrap');
+  const prog = document.getElementById('wProg');
+  wrap.innerHTML = '';
+  prog.innerHTML = '';
+  wCurrent = 0;
+
+  wCards.forEach((card, i) => {
+    const seg = document.createElement('div');
+    seg.className = 'w-ps'+(i===0?' active':'');
+    prog.appendChild(seg);
+
+    const el = document.createElement('div');
+    el.className = 'card'+(i===0?' active':'');
+
+    if(card.type==='lead') {
+      el.innerHTML = `
+        <div class="lead-card" style="display:flex;flex-direction:column;height:100%;">
+          <div class="lead-hero hero-green" style="padding:52px 20px 20px;min-height:38%;display:flex;flex-direction:column;justify-content:flex-end;">
+            <div class="card-tag tag-green">GET A QUOTE</div>
+            <h2 class="card-headline hero-green"><em>Get your free quote</em></h2>
+          </div>
+          <div class="lead-body" style="flex:1;background:var(--bg2);padding:20px;overflow-y:auto;">
+            <p style="font-size:14px;color:var(--t2);line-height:1.7;margin-bottom:16px;">Like what you see? Fill in your details and ${bizName} will be in touch with a free, no-obligation quote.</p>
+            <div class="lead-form" id="leadForm">
+              <input type="text" placeholder="Your name" id="lName">
+              <input type="tel" placeholder="Your phone" id="lPhone">
+              <input type="email" placeholder="Your email (optional)" id="lEmail">
+              <input type="text" placeholder="Brief job description" id="lJob">
+              <button class="lead-submit" onclick="submitLead()">Send my enquiry →</button>
+            </div>
+            <div class="lead-success" id="leadSuccess" style="display:none;">
+              <div class="big">🎉</div>
+              <h3>Enquiry sent!</h3>
+              <p>${bizName} will be in touch soon. You'll hear back within 1 business day.</p>
+              ${phone ? `<div style="margin-top:16px;"><a href="tel:${phone}" style="display:inline-block;background:var(--green);color:#000;font-weight:700;font-size:14px;border-radius:10px;padding:12px 20px;text-decoration:none;">📞 Call ${phone} now</a></div>` : ''}
+            </div>
+          </div>
+        </div>`;
+    } else {
+      const btns = card.iButtons.map(b=>`<button class="i-btn" data-term="${b.term}" data-type="${b.type}" data-content="${encodeURIComponent(b.content)}"><span class="i-dot">i</span>${b.label}</button>`).join('');
+      el.innerHTML = `
+        <div class="card-hero ${card.heroClass}">
+          <div class="card-tag ${card.tagClass}">${card.tag}</div>
+          <h2 class="card-headline">${card.headline}</h2>
+        </div>
+        <div class="card-body">
+          <p class="card-summary">${card.summary}</p>
+          <div class="i-buttons">${btns}</div>
+        </div>`;
+      el.querySelectorAll('.i-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          openModal(btn.dataset.term, btn.dataset.type, decodeURIComponent(btn.dataset.content));
+        });
+      });
+    }
+
+    wrap.appendChild(el);
+  });
+
+  updateWNav();
+  // Swipe support
+  let startX = 0;
+  wrap.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive:true});
+  wrap.addEventListener('touchend', e => {
+    const diff = startX - e.changedTouches[0].clientX;
+    if(Math.abs(diff)>50) wNav(diff>0?1:-1);
+  });
 }
 
-function onPhone(val) {
-  state.phone = val;
-  updateNav();
-}
-
-function buildServiceGrid() {
-  const grid = document.getElementById('serviceGrid');
-  const list = SERVICES[state.trade] || [];
-  grid.innerHTML = list.map(s => `
-    <button class="service-btn ${state.services.includes(s.name) ? 'selected' : ''}" onclick="toggleService(this, '${s.name}')">
-      <span class="service-icon">${s.icon}</span>
-      <span class="service-name">${s.name}</span>
-      <span class="service-check">${state.services.includes(s.name) ? '✓' : ''}</span>
-    </button>
-  `).join('');
-}
-
-function toggleService(btn, name) {
-  const idx = state.services.indexOf(name);
-  if (idx > -1) {
-    state.services.splice(idx, 1);
-    btn.classList.remove('selected');
-    btn.querySelector('.service-check').textContent = '';
-  } else {
-    if (state.services.length >= 4) return;
-    state.services.push(name);
-    btn.classList.add('selected');
-    btn.querySelector('.service-check').textContent = '✓';
+function wNav(dir) {
+  const next = wCurrent + dir;
+  if(next>=0 && next<wCards.length) {
+    document.querySelectorAll('.card').forEach((c,i)=>{
+      c.classList.remove('active','prev');
+      if(i===next) c.classList.add('active');
+      else if(i<next) c.classList.add('prev');
+    });
+    document.querySelectorAll('.w-ps').forEach((s,i)=>{
+      s.className = 'w-ps'+(i===next?' active':i<next?' viewed':'');
+    });
+    wCurrent = next;
+    updateWNav();
   }
-  updateNav();
 }
 
-function buildPreview() {
-  const initials = state.bizName.trim().split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase() || '?';
-  const avatar = document.getElementById('previewAvatar');
-  avatar.textContent = initials;
-  avatar.style.background = state.tradeColor;
-
-  document.getElementById('previewBizName').textContent = state.bizName || 'Your Business';
-  document.getElementById('previewTrade').textContent = state.trade + ' Contractor';
-  document.getElementById('previewPhone').textContent = state.phone || '—';
-
-  const heroEl = document.getElementById('previewHero');
-  heroEl.style.background = `linear-gradient(135deg, ${state.tradeColor}99 0%, ${state.tradeColor}33 100%)`;
-
-  const pills = document.getElementById('previewServices');
-  pills.innerHTML = state.services.map(s => `<div class="service-pill">${s}</div>`).join('');
+function updateWNav() {
+  document.getElementById('wPrev').disabled = wCurrent===0;
+  document.getElementById('wNext').disabled = wCurrent===wCards.length-1;
+  document.getElementById('wCounter').textContent = `${wCurrent+1} / ${wCards.length}`;
 }
 
-function onDeploy() {
-  const subject = encodeURIComponent(`Deploy my iTabs widget — ${state.bizName}`);
-  const body = encodeURIComponent(
-    `Hi iTabs,\n\nI want my quote widget deployed!\n\nBusiness: ${state.bizName}\nTrade: ${state.trade}\nServices: ${state.services.join(', ')}\nPhone: ${state.phone || 'Not provided'}\n\nPlease send me the live link.`
-  );
+function showConfig() {
+  document.getElementById('configurator').style.display = 'flex';
+  document.getElementById('widget-view').classList.remove('show');
+}
 
-  // Web3Forms silent submission
+function submitLead() {
+  const name = document.getElementById('lName').value.trim();
+  const ph = document.getElementById('lPhone').value.trim();
+  if(!name || !ph) { alert('Please enter your name and phone number.'); return; }
   fetch('https://api.web3forms.com/submit', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({
-      access_key: '99a11c15-5c61-4765-99c5-673adec64b16',
-      subject: `New iTabs Deploy Request — ${state.bizName}`,
-      business_name: state.bizName,
-      trade: state.trade,
-      services: state.services.join(', '),
-      phone: state.phone || 'Not provided',
+      access_key:'99a11c15-5c61-4765-99c5-673adec64b16',
+      subject:`New enquiry via ${bizName} iTabs widget`,
+      business: bizName, trade, services: services.join(', '),
+      customer_name: name, customer_phone: ph,
+      customer_email: document.getElementById('lEmail').value,
+      job: document.getElementById('lJob').value,
     })
-  }).catch(() => {});
-
-  // Open mailto as fallback
-  window.location.href = `mailto:build@itabs.ai?subject=${subject}&body=${body}`;
-
-  // Show toast
-  const toast = document.getElementById('toast');
-  toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 3500);
+  }).catch(()=>{});
+  document.getElementById('leadForm').style.display = 'none';
+  document.getElementById('leadSuccess').style.display = 'block';
 }
 
-// Init
-initProgress();
-showScreen(0);
+function openModal(term, type, content) {
+  const labels = {definition:'Definition','why-it-matters':'Why it matters',context:'Context',related:'Related'};
+  document.getElementById('mTerm').textContent = term;
+  document.getElementById('mType').textContent = labels[type]||type;
+  document.getElementById('mContent').textContent = content;
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal() { document.getElementById('modal').classList.remove('open'); }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeModal(); if(e.key==='ArrowRight') wNav(1); if(e.key==='ArrowLeft') wNav(-1); });
 </script>
 </body>
 </html>
